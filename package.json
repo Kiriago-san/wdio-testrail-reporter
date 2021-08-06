@@ -1,8 +1,16 @@
 {
   "name": "testrail-wdio-reporter",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "create run and add the result for test cases",
-  "main": "testraik-reporter.js",
+  "main": "./src/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kiriago-san/wdio-testrail-reporter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Kiriago-san/wdio-testrail-reporter/issues"
+  },
+  "homepage": "https://github.com/Kiriago-san/wdio-testrail-reporter#readme",
   "scripts": {
     "test": ""
   },
@@ -11,7 +19,7 @@
   ],
   "author": "Kiriago",
   "license": "ISC",
-  "devDependencies": {
+  "dependencies": {
     "@wdio/reporter": "^7.9.0",
     "async": "^3.2.1",
     "axios": "^0.21.1"
