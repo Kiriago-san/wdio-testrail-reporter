@@ -5,7 +5,7 @@
 In wdio config file u have to do next:
 
 ```
-const CustomReporter = require('testrail-wdio')
+const CustomReporter = require('testrail-wdio-reporter')
 
 
 const wdioConfig = {
