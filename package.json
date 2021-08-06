@@ -1,0 +1,19 @@
+{
+  "name": "testrail-wdio-reporter",
+  "version": "1.0.0",
+  "description": "create run and add the result for test cases",
+  "main": "testraik-reporter.js",
+  "scripts": {
+    "test": ""
+  },
+  "keywords": [
+    "wdio-reporter"
+  ],
+  "author": "Kiriago",
+  "license": "ISC",
+  "devDependencies": {
+    "@wdio/reporter": "^7.9.0",
+    "async": "^3.2.1",
+    "axios": "^0.21.1"
+  }
+}
