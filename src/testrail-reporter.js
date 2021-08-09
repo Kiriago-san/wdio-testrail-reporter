@@ -1,47 +1,14 @@
 "use strict";
 /// <reference types="node" />
-
+var Testrail = require('testrail-api');
 //const WDIOReporter = require('@wdio/reporter');
 const WDIOReporter = require("@wdio/reporter").default;
 const axios = require('axios');
 const async = require('async')
-let numberId;
-let params;
-let resp;
-
-
-
-function createTestRun() {
-  let date = new Date()
-  let title = params.title == undefined ? `${date.getDate()}.${date.getMonth()} ${date.getHours()}:${date.getMinutes()}` : params.title;
-
-
-  axios.post(
-    `https://${params.link}/index.php?/api/v2/add_run/${params.suite_id}`,
-    {
-      suite_id: 1,
-      name: title,
-      include_all: true,
-    },
-    {
-      auth: {
-        username: params.login,
-        password: params.apiToken,
-      },
-    },
-  )
-    .then((response) => {
-      //while (response == undefined) { return 1 };
-      numberId = response.data.id
-      console.log(`Run "${title}" created with number ${numberId}`)
-      //console.log(date.getDate())
-    })
-
-}
-
-
+let numberId,
+  params,
+  resp;
 let resultsForIT = []
-let resultForDescribe = []
 
 
 
@@ -50,19 +17,17 @@ function getObject(case_id, status_id, comment, defect) {
     "case_id": case_id,
     "status_id": status_id,
     "comment": comment,
-    //"defects": defect
   }
 }
 
 function pushGlobalResults() {
-  //console.log(numberId, test.title, status, comment)
+  resp = undefined;
+
   let link = `https://${params.link}/index.php?/api/v2/add_results_for_cases/${numberId}`
-  //console.log(params.tests.toLowerCase() == 'it'? resultsForIT: resultForDescribe)
-  //console.log(link)
   axios.post(
     link,
     {
-      "results": params.tests.toLowerCase() == 'it' ? resultsForIT : resultForDescribe
+      "results": resultsForIT
     },
     {
       auth: {
@@ -70,14 +35,14 @@ function pushGlobalResults() {
         password: params.apiToken,
       },
     },
-  ).then(function (response) {
-    resp = response;
+  ).then((response) => {
+    resp = true;
   })
 
 }
 
 function pushResults(testID, status, comment) {
-  console.log(numberId, testID, status)
+  resp = undefined;
   axios.post(
     `https://${params.link}/index.php?/api/v2/add_result_for_case/${numberId}/${testID}`,
     {
@@ -91,9 +56,7 @@ function pushResults(testID, status, comment) {
       },
     },
   ).then(function (response) {
-    console.log('123')
     resp = true;
-
   })
 
 }
@@ -103,48 +66,63 @@ module.exports = class CustomReporter extends WDIOReporter {
   constructor(options) {
     super(options)
     params = options;
-    this.write('Some log line');
-    createTestRun()
+    let date = new Date()
+    let title = params.title == undefined ? `${date.getDate()}.${date.getMonth()} ${date.getHours()}:${date.getMinutes()}` : params.title;
+
+    axios.post(
+      `https://${params.link}/index.php?/api/v2/add_run/${params.suite_id}`,
+      {
+        suite_id: 1,
+        name: title,
+        include_all: true,
+      },
+      {
+        auth: {
+          username: params.login,
+          password: params.apiToken,
+        },
+      },
+    )
+      .then((response) => {
+        numberId = response.data.id
+        this.write(`Run "${title}" created with number ${numberId}`);
+      })
   }
 
-    onTestPass(test) {
-      let id = test.title
-      // resultsForIT.push(getObject(test.title, 1, 'This test case is passed'))
+  onTestPass(test) {
+    if (params.tests) {
+      resultsForIT.push(getObject((test.title.split(' '))[0].replace('C', ''), 1, 'This test case is passed'))
     }
+  }
 
-    onTestFail(test) {
-      // resultsForIT.push(getObject(test.title, 5, `This test case is failed:\n ${JSON.stringify(test.errors, null, 3)}`))
+  onTestFail(test) {
+    if (params.tests) {
+      resultsForIT.push(getObject((test.title.split(' '))[0].replace('C', ''), 5, `This test case is failed:\n ${JSON.stringify(test.errors, null, 3)}`))
     }
+  }
 
-    onTestSkip(test) {
-      //resultsForIT.push(getObject(test.title, 4, 'This test case is skipped'))
+  onTestSkip(test) {
+    if (params.tests) {
+      resultsForIT.push(getObject((test.title.split(' '))[0].replace('C', ''), 4, 'This test case is skipped'))
     }
-    
+  }
 
-    onSuiteEnd(test) {
-      // console.log(test)
-      // fs.writeFileSync('./filename.json',JSON.stringify(test,null,1))
-      //resultForDescribe.push(getObject(test.title, 1, 'This test case is passed'))
-      //     let results = `${test.fullTitle}`;
-      //  console.log((results.split(' ')[0]).replace('C',''))
-      //let numberOfCase = test.fullTitle.split(' ')[0].replace('C', '')
-      //console.log(numberOfCase);
-      //let status;
-
-      resp = undefined;
-      this.sync(test)
-
-  
+  onSuiteEnd(test) {
+    if (params.tests == undefined) {
+      this.sync(test, true)
     }
-    onSuiteStart(suite) {
-      //  console.log(suite)
-    }
+  }
 
-    onRunnerEnd() {
-      // this.sync()
-    }
 
-    sync(test) {
+  onRunnerEnd() {
+    if (params.tests != undefined) {
+      this.sync();
+    }
+    this.write('\nThe results are pushed!')
+  }
+
+  sync(test, isSuite = false) {
+    if (isSuite) {
       let values = new Object({
         'general': 0,
         'passed': 0,
@@ -156,7 +134,6 @@ module.exports = class CustomReporter extends WDIOReporter {
       async.each(test.tests, function (logs, callback) {
         switch (logs.state) {
           case 'failed': values.failed = values.failed + 1;
-            // values.errors.push(logs)
             values.errors.push(`Failed on : ${logs.title} \n ${JSON.stringify(logs.errors, null, 1)}`)
             break;
           case 'passed': values.passed = values.passed + 1;
@@ -176,14 +153,14 @@ module.exports = class CustomReporter extends WDIOReporter {
         values.general = 1;
       }
       pushResults((test.fullTitle.split(' '))[0].replace('C', ''), values.general, JSON.stringify(values, null, 1))
-
-    };
-  
-    get isSynchronised() {
-      return resp !== undefined
     }
-
+    else {
+      pushGlobalResults();
+    }
   };
 
+  get isSynchronised() {
+    return resp !== undefined
+  }
 
-
+};

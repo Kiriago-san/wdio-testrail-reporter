@@ -1,6 +1,6 @@
 {
   "name": "testrail-wdio-reporter",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "create run and add the result for test cases",
   "main": "./src/index.js",
   "repository": {
