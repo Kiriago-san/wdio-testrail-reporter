@@ -51,3 +51,6 @@ describe('C1 some test case',()=>{
         })
 })
 ```
+
+### Example of using
+https://github.com/Kiriago-san/wdioTestActionsSync/tree/testrail
