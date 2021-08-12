@@ -1,6 +1,6 @@
 {
   "name": "testrail-wdio-reporter",
-  "version": "1.0.4",
+  "version": "1.0.41",
   "description": "create run and add the result for test cases",
   "main": "./src/index.js",
   "repository": {
@@ -15,7 +15,12 @@
     "test": ""
   },
   "keywords": [
-    "wdio-reporter"
+    "wdio-reporter",
+    "wdio",
+    "reporter",
+    "testrail",
+    "wdio-testrail",
+    "reporter-testrail"
   ],
   "author": "Kiriago",
   "license": "ISC",
