@@ -23,7 +23,7 @@ reporters:
 
 ```
 ## Info
-This reporter pushes results after avery test suite (describe or contex blocks),
+This reporter pushes results after every test suite (describe or contex blocks),
 using Axios to create http requests.
 
 The tests titles (it block or suite) must have a title with number of test case, for example:
